@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>মাসিক পরিকল্পনা, দৈনিক ছক ও রিপোর্ট</title>
+<style>
+:root{--bg:#f6f4f0;--card:#fff;--tx:#25221f;--mu:#766e66;--bd:#ddd5cb;--ac:#0f766e;--acb:#d5f5ef;--hd:#ece5db;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16130f;--card:#211c17;--tx:#f1eae3;--mu:#a69b8f;--bd:#3a3028;--ac:#2dd4bf;--acb:#0f3b37;--hd:#2c241d}}
+:root[data-theme="dark"]{--bg:#16130f;--card:#211c17;--tx:#f1eae3;--mu:#a69b8f;--bd:#3a3028;--ac:#2dd4bf;--acb:#0f3b37;--hd:#2c241d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;line-height:1.45}
+main{max-width:720px;margin:0 auto;padding:12px 10px 40px}
+.bis{text-align:center;font-size:.75rem;color:var(--mu);margin:0}
+h1{font-size:1.2rem;text-align:center;margin:2px 0 8px}
+.mon{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:5px}
+.mon button{width:44px;height:38px;border:0;border-radius:10px;background:var(--hd);color:var(--tx);font-size:1.05rem;cursor:pointer}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tabs button{flex:1;height:40px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;font-size:.88rem;cursor:pointer}
+.tabs button.on{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:700}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.card h3{font-size:.95rem;margin:2px 0 6px;color:var(--ac)}
+.fr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px dashed var(--bd);font-size:.88rem}
+.fr input[type=text],.fr input:not([type]),.fr output{width:46%;max-width:210px;height:34px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;padding:0 8px;text-align:right}
+.fr output{display:flex;align-items:center;justify-content:flex-end;background:var(--acb);font-weight:700;border-color:transparent}
+.fr input[type=checkbox]{width:22px;height:22px}
+textarea{width:100%;min-height:90px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;padding:8px}
+.note{font-size:.78rem;color:var(--mu);margin:2px 2px 10px}
+.wrap{overflow:auto;max-height:600px;border:1px solid var(--bd);border-radius:12px;background:var(--card)}
+table{border-collapse:separate;border-spacing:0}
+th,td{border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);text-align:center;font-size:.74rem;padding:0}
+th{background:var(--hd);position:sticky;top:0;z-index:2;white-space:nowrap;height:34px;padding:0 6px}
+thead tr:nth-child(2) th{top:34px;z-index:2}
+td.dt,th.dt{position:sticky;left:0;z-index:3;background:var(--hd);min-width:58px;font-weight:700}
+td.dt small{display:block;font-weight:400;color:var(--mu);font-size:.65rem}
+td input{width:54px;height:38px;border:0;background:transparent;color:var(--tx);font:inherit;font-size:.85rem;text-align:center}
+td input[type=checkbox]{width:20px;height:20px;margin:9px 17px}
+tr.today td{background:var(--acb)}
+tr.today td.dt{background:var(--acb)}
+tfoot td{background:var(--hd);font-weight:700;height:36px;position:sticky;bottom:0}
+tfoot td.dt{z-index:3}
+.pdf{width:100%;height:44px;border:0;border-radius:12px;background:var(--ac);color:var(--bg);font:inherit;font-weight:700;cursor:pointer;margin-bottom:2px}
+.msg{font-size:.8rem;color:var(--mu);text-align:center;min-height:1.2em;margin:2px 0 8px}
+.dev{text-align:center;color:var(--mu);font-size:.8rem;margin:22px 0 0}
+</style>
+</head>
+<body>
+<main>
+<p class="bis">বিসমিল্লাহির রাহমানির রাহিম</p>
+<h1 id="ttl"></h1>
+<div class="mon"><button data-m="-1">◀</button><b id="mname"></b><button data-m="1">▶</button></div>
+<div class="tabs" id="tabs"></div>
+<button class="pdf" id="pdf">📄 এই মাসের হিসাব PDF ডাউনলোড</button>
+<p class="msg" id="msg"></p>
+<div id="view"></div>
+<p class="dev">Developed by DCS Abir</p>
+</main>
+<script>
+var BN="০১২৩৪৫৬৭৮৯";
+function b(n){return String(n).replace(/\d/g,function(c){return BN[c]})}
+function num(s){s=String(s==null?"":s).replace(/[০-৯]/g,function(c){return BN.indexOf(c)});var n=parseFloat(s);return isNaN(n)?0:n}
+function r1(x){return Math.round(x*10)/10}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return "&#"+c.charCodeAt(0)+";"})}
+var MN=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+var WD=["রবি","সোম","মঙ্গল","বুধ","বৃহঃ","শুক্র","শনি"];
+var COLS=[
+["কুরআন (আয়াত)",[["qt","তিলাওয়াত"],["qf","তাফসির"]]],
+["হাদিস",[["h","সংখ্যা"]]],
+["নামাজ",[["nj","জামায়াত"],["nk","কাজা"]]],
+["সাহিত্য (পৃষ্ঠা)",[["ss","সিলেবাস"],["so","অন্যান্য"]]],
+["পাঠ্যপুস্তক",[["pt","ঘণ্টা"]]],
+["ক্লাস",[["cc","সংখ্যা"],["ca","উপস্থিতি"]]],
+["যোগাযোগ",[["m1","সদস্য"],["m2","সাথী"],["m3","কর্মী"],["m4","সমর্থক"],["m5","বন্ধু"],["m6","মেধাবী ছাত্র"],["m7","শুভাকাঙ্ক্ষী"],["m8","মুহাররমা"]]],
+["বিতরণ",[["b1","সাহিত্য"],["b2","ম্যাগাজিন"],["b3","স্টিকার/কার্ড"],["b4","উপহার"]]],
+["সাংগঠনিক দায়িত্ব (ঘণ্টা)",[["sd","দাওয়াতি কাজ"],["sg","অন্যান্য"]]],
+["নোট (পৃষ্ঠা)",[["nt","বই/আলোচনা"]]],
+["প্রতিদিনের ✓",[["c1","আত্মসমালোচনা","c"],["c2","শরীরচর্চা","c"],["c3","পত্রিকা পাঠ","c"]]],
+["সোশ্যাল মিডিয়া",[["sm","ঘণ্টা"]]],
+["ঘুম",[["sl","ঘণ্টা"]]]];
+/* item: [label, auto]  auto = s:(sum) d:(days>0) a:(avg per active day) keys joined by + ; no auto = manual */
+var SEC=[
+["কুরআন অধ্যয়ন",[["মোট দিন (তিলাওয়াত)","d:qt"],["গড় আয়াত তিলাওয়াত","a:qt"],["মোট দিন (তাফসির)","d:qf"],["গড় আয়াত তাফসির","a:qf"],["দারস প্রস্তুত"],["মুখস্থ: আয়াত"],["অর্থসহ সূরা"]]],
+["হাদিস অধ্যয়ন",[["মোট দিন","d:h"],["গড় হাদিস","a:h"],["গ্রন্থ/বিষয়"],["দারস প্রস্তুত"],["মুখস্থ"],["মুখস্থ বিষয়"]]],
+["সাহিত্য অধ্যয়ন",[["মোট পৃষ্ঠা","s:ss+so"],["সিলেবাস","s:ss"],["অন্যান্য","s:so"],["বইয়ের নাম"],["বই নোট (পৃষ্ঠা)","s:nt"],["আলোচনা নোট"]]],
+["পাঠ্যপুস্তক ও ক্লাস",[["পাঠ্যপুস্তক: মোট দিন","d:pt"],["গড় ঘণ্টা","a:pt"],["ক্লাসে মোট ক্লাস","s:cc"],["ক্লাসে উপস্থিতি","s:ca"]]],
+["নামাজ",[["জামায়াত (ওয়াক্ত)","s:nj"],["জামায়াত গড় (প্রতিদিন)","a:nj"],["কাজা (ওয়াক্ত)","s:nk"]]],
+["যোগাযোগ",[["সদস্য","s:m1"],["সাথী","s:m2"],["কর্মী","s:m3"],["সমর্থক","s:m4"],["বন্ধু","s:m5"],["মেধাবী ছাত্র","s:m6"],["শুভাকাঙ্ক্ষী","s:m7"],["মুহাররমা","s:m8"],["স্কুল ছাত্র"],["শিক্ষক"],["ভিআইপি"]]],
+["সাংগঠনিক দায়িত্ব পালন",[["মোট দিন","d:sd+sg"],["গড় ঘণ্টা","a:sd+sg"],["দাওয়াতি কাজ: দিন","d:sd"],["দাওয়াতি কাজ: গড় ঘণ্টা","a:sd"],["অন্যান্য সাংগঠনিক: দিন","d:sg"],["অন্যান্য সাংগঠনিক: গড় ঘণ্টা","a:sg"]]],
+["সোশ্যাল মিডিয়া ও ঘুম",[["সোশ্যাল মিডিয়া: মোট দিন","d:sm"],["সোশ্যাল মিডিয়া: গড় ঘণ্টা","a:sm"],["ঘুম: মোট দিন","d:sl"],["ঘুম: গড় ঘণ্টা","a:sl"]]],
+["বিতরণ",[["ইসলামী সাহিত্য","s:b1"],["ম্যাগাজিন/কিশোর পত্রিকা","s:b2"],["স্টিকার/কার্ড","s:b3"],["উপহার/মেসেজ/ই-মেইল","s:b4"],["Y.W."],["ছাত্রসংবাদ"],["ইংরেজি পত্রিকা"],["পরিচিতি"],["ক্লাস রুটিন"]]],
+["বৃদ্ধি",[["সদস্য"],["সদস্যপ্রার্থী"],["সাথী"],["সাথীপ্রার্থী"],["কর্মী"],["সমর্থক"],["বন্ধু"],["শুভাকাঙ্ক্ষী"]]],
+["বায়তুলমাল",[["পরিশোধের তারিখ"],["ছাত্রকল্যাণ (টাকা)"],["ব্যক্তিগত বৃদ্ধি (টাকা)"],["টেবিল ব্যাংক/কলসি (টাকা)"]]],
+["বিবিধ",[["আত্মসমালোচনা (দিন)","s:c1"],["শরীরচর্চা (দিন)","s:c2"],["পত্রিকা পাঠ (দিন)","s:c3"],["আত্মীয়স্বজন (পুরুষ) যোগাযোগ (জন)"],["গ্রুপ দাওয়াতি কাজ (বার)"],["দাওয়াতি মেসেজ/ই-মেইল প্রেরণ (টি)"],["অমুসলিম বন্ধু যোগাযোগ (জন)"],["বন্ধুসংগঠনের সাথে যোগাযোগ (জন)"],["কম্পিউটার শিক্ষা (দিন)"],["ভাষা শিক্ষা (দিন)"],["অন্যান্য"],["দায়িত্বশীলকে রিপোর্ট দেখানো (বার)"],["রিপোর্ট দেখানোর তারিখ"]]]];
+var NOW=new Date(),TY=NOW.getFullYear(),TM=NOW.getMonth(),TD=NOW.getDate();
+var Y=TY,Mo=TM,tab=1,ALL={},KEY="selfctl_monthly";
+try{ALL=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){ALL={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ALL))}catch(e){}}
+function ym(){return Y+"-"+(Mo+1)}
+function dim(){return new Date(Y,Mo+1,0).getDate()}
+function isNow(){return Y==TY&&Mo==TM}
+function M(){var k=ym();if(!ALL[k])ALL[k]={days:{},man:{}};return ALL[k]}
+function cell(k,d){var m=M();return num(m.days[d]&&m.days[d][k])}
+function calc(spec){
+  var t=spec.split(":"),ks=t[1].split("+"),n=dim(),S=0,D=0;
+  for(var d=1;d<=n;d++){var x=0;ks.forEach(function(k){x+=cell(k,d)});S+=x;if(x>0)D++}
+  return t[0]=="s"?S:t[0]=="d"?D:(D?S/D:0);
+}
+function secHTML(mode){
+  var m=M(),h="";
+  SEC.forEach(function(s,si){
+    h+="<div class='card'><h3>"+s[0]+"</h3>";
+    s[1].forEach(function(it,ii){
+      var key=mode+si+"_"+ii;
+      h+="<label class='fr'><span>"+it[0]+"</span>"+((mode=="R"&&it[1])?"<output>"+b(r1(calc(it[1])))+"</output>":"<input data-k='"+key+"' value='"+esc(m.man[key])+"'>")+"</label>";
+    });
+    h+="</div>";
+  });
+  return h;
+}
+function noteBox(mode,lbl){
+  var m=M();
+  return "<div class='card'><h3>"+lbl+"</h3><textarea data-k='"+mode+"note'>"+esc(m.man[mode+"note"])+"</textarea></div>";
+}
+function chk(key,lbl){
+  return "<label class='fr'><span>"+lbl+"</span><input type='checkbox' data-k='"+key+"' "+(M().man[key]?"checked":"")+"></label>";
+}
+function tableHTML(){
+  var n=dim(),m=M(),h1="<tr><th class='dt' rowspan='2'>তারিখ/বার</th>",h2="<tr>",ks=[];
+  COLS.forEach(function(g){
+    h1+="<th colspan='"+g[1].length+"'>"+g[0]+"</th>";
+    g[1].forEach(function(c){h2+="<th>"+c[1]+"</th>";ks.push(c)});
+  });
+  var h="<div class='wrap' id='wrap'><table><thead>"+h1+"</tr>"+h2+"</tr></thead><tbody>";
+  for(var d=1;d<=n;d++){
+    h+="<tr"+(isNow()&&d==TD?" class='today'":"")+"><td class='dt'>"+b(d)+"<small>"+WD[new Date(Y,Mo,d).getDay()]+"</small></td>";
+    ks.forEach(function(c){
+      var v=m.days[d]&&m.days[d][c[0]];
+      h+="<td>"+(c[2]=="c"?"<input type='checkbox' data-d='"+d+"' data-c='"+c[0]+"' "+(num(v)?"checked":"")+">":"<input inputmode='decimal' data-d='"+d+"' data-c='"+c[0]+"' value='"+esc(v)+"'>")+"</td>";
+    });
+    h+="</tr>";
+  }
+  h+="</tbody><tfoot><tr><td class='dt'>মোট</td>";
+  ks.forEach(function(c){h+="<td id='f_"+c[0]+"'></td>"});
+  return h+"</tr></tfoot></table></div><p class='note'>প্রতিটি ঘরে সংখ্যা লিখুন। ✓ ঘরে ট্যাপ করুন। নিচের \"মোট\" সারি ও রিপোর্ট নিজে থেকেই হিসাব হয়।</p>";
+}
+function foot(){
+  COLS.forEach(function(g){g[1].forEach(function(c){
+    var el=document.getElementById("f_"+c[0]);if(el)el.textContent=b(r1(calc("s:"+c[0])));
+  })});
+}
+function render(){
+  document.getElementById("mname").textContent=MN[Mo]+" "+b(Y);
+  document.getElementById("ttl").textContent=["মাসিক পরিকল্পনা","দৈনিক ছক","একনজরে মাসিক রিপোর্ট"][tab];
+  document.getElementById("tabs").innerHTML=["পরিকল্পনা","দৈনিক ছক","রিপোর্ট"].map(function(t,i){return "<button data-t='"+i+"' class='"+(i==tab?"on":"")+"'>"+t+"</button>"}).join("");
+  var v=document.getElementById("view"),h="";
+  if(tab==0){
+    h="<div class='card'><h3>ব্যক্তিগত তথ্য</h3><label class='fr'><span>নাম</span><input data-p='name' value='"+esc((ALL._p||{}).name)+"'></label><label class='fr'><span>মোবাইল নম্বর</span><input data-p='phone' inputmode='tel' value='"+esc((ALL._p||{}).phone)+"'></label></div>"+secHTML("P")+"<div class='card'><h3>অঙ্গীকার</h3>"+chk("Pchk1","প্রতি ওয়াক্ত নামাজ জামায়াতে আদায় করা হবে, ইনশাআল্লাহ")+chk("Pchk2","কিছু নফল নামাজ/ইবাদত আদায় করা হবে, ইনশাআল্লাহ")+"</div>"+noteBox("P","পরিকল্পনা গ্রহণকারীর স্বাক্ষর ও তারিখ");
+  }else if(tab==1){h=tableHTML()}
+  else{
+    h="<div class='card'><label class='fr'><span>নাম</span><output>"+esc((ALL._p||{}).name||"—")+"</output></label><label class='fr'><span>মোবাইল নম্বর</span><output>"+esc((ALL._p||{}).phone||"—")+"</output></label></div><p class='note'>সবুজ ঘরগুলো দৈনিক ছক থেকে নিজে থেকেই হিসাব হয়েছে। \"গড়\" = মোট ÷ যে যে দিনে ঘরে ০-এর বেশি লেখা আছে। সাদা ঘরগুলো নিজে লিখুন।</p>"+secHTML("R")+noteBox("R","দায়িত্বশীলের পরামর্শ ও স্বাক্ষর");
+  }
+  v.innerHTML=h;
+  if(tab==1){foot();var tr=v.querySelector("tr.today"),w=document.getElementById("wrap");if(tr&&w)w.scrollTop=Math.max(0,tr.offsetTop-90)}
+}
+document.addEventListener("input",function(e){
+  var t=e.target,m=M(),val=t.type=="checkbox"?(t.checked?1:0):t.value;
+  if(t.dataset.d){var d=t.dataset.d;(m.days[d]=m.days[d]||{})[t.dataset.c]=val;save();foot()}
+  else if(t.dataset.p){(ALL._p=ALL._p||{})[t.dataset.p]=t.value;save()}
+  else if(t.dataset.k){m.man[t.dataset.k]=val;save()}
+});
+document.addEventListener("click",function(e){
+  var t=e.target.closest("[data-m],[data-t]");if(!t)return;
+  if(t.dataset.m){Mo+=+t.dataset.m;if(Mo<0){Mo=11;Y--}if(Mo>11){Mo=0;Y++}}
+  else tab=+t.dataset.t;
+  render();
+});
+
+var DL=null;
+try{if(window.claude&&claude.use)claude.use("downloads").then(function(x){DL=x}).catch(function(){})}catch(e){}
+var FN='"Hind Siliguri","Noto Sans Bengali","Noto Sans",system-ui,sans-serif';
+function repPages(){
+  var W=1190,H=1684,CW=520,XS=[60,610],m=M(),pages=[],x,col,y,ytop;
+  function np(first){
+    var cv=document.createElement("canvas");cv.width=W;cv.height=H;x=cv.getContext("2d");
+    x.fillStyle="#fff";x.fillRect(0,0,W,H);x.textBaseline="middle";pages.push(cv);col=0;
+    if(first){x.fillStyle="#0f766e";x.textAlign="center";x.font="700 42px "+FN;x.fillText("একনজরে মাসিক রিপোর্ট",W/2,70);
+      x.fillStyle="#2a2420";x.font="500 26px "+FN;x.fillText("মাস: "+MN[Mo]+"    সাল: "+b(Y),W/2,125);var pf=ALL._p||{};x.font="600 26px "+FN;x.textAlign="left";x.fillText("নাম: "+fit(pf.name||"—",420),75,172);x.textAlign="right";x.fillText("মোবাইল: "+fit(pf.phone||"—",300),W-75,172);x.strokeStyle="#cfc4b8";x.lineWidth=2;x.beginPath();x.moveTo(60,200);x.lineTo(W-60,200);x.stroke();ytop=225}
+    else ytop=70;
+    y=ytop;
+  }
+  function fit(t,w){t=String(t==null?"":t);if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+"…").width>w)t=t.slice(0,-1);return t+"…"}
+  function need(h){if(y+h>H-100){if(col==0){col=1;y=ytop}else np(false)}}
+  function head(t){var X=XS[col];x.fillStyle="#ece5db";x.fillRect(X,y,CW,40);x.fillStyle="#0f766e";x.textAlign="left";x.font="700 24px "+FN;x.fillText(t,X+12,y+21);y+=44}
+  np(true);
+  SEC.forEach(function(s,si){
+    need(44+s[1].length*34+12);head(s[0]);var X=XS[col];
+    s[1].forEach(function(it,ii){
+      var v=it[1]?b(r1(calc(it[1]))):m.man["R"+si+"_"+ii];if(v==null||v==="")v="—";
+      x.font="500 21px "+FN;x.fillStyle="#2a2420";x.textAlign="left";x.fillText(fit(it[0],330),X+12,y+16);
+      x.font="700 22px "+FN;x.textAlign="right";x.fillStyle=it[1]?"#0f766e":"#2a2420";x.fillText(fit(v,170),X+CW-12,y+16);
+      x.strokeStyle="#e6ddd3";x.lineWidth=1;x.beginPath();x.moveTo(X,y+33);x.lineTo(X+CW,y+33);x.stroke();y+=34;
+    });
+    y+=12;
+  });
+  need(260);head("দায়িত্বশীলের পরামর্শ ও স্বাক্ষর");
+  var X=XS[col],lines=[],cur="";
+  x.font="500 21px "+FN;
+  String(m.man.Rnote||"").split("").forEach(function(ch){
+    if(ch=="\n"||x.measureText(cur+ch).width>CW-24){lines.push(cur);cur=ch=="\n"?"":ch}else cur+=ch;
+  });
+  if(cur)lines.push(cur);
+  x.fillStyle="#2a2420";x.textAlign="left";
+  lines.slice(0,6).forEach(function(l,i){x.fillText(l,X+12,y+16+i*32)});
+  x.strokeStyle="#cfc4b8";x.lineWidth=2;x.strokeRect(X,y-4,CW,210);
+  pages.forEach(function(cv,i){
+    var g=cv.getContext("2d");g.textBaseline="middle";g.fillStyle="#7a6f66";g.font="500 22px "+FN;
+    g.textAlign="center";g.fillText("Developed by DCS Abir",W/2,H-45);
+    g.textAlign="right";g.fillText("পৃষ্ঠা "+b(i+1)+"/"+b(pages.length),W-60,H-45);
+  });
+  return pages;
+}
+function jpgOf(cv){return new Promise(function(res){cv.toBlob(function(bl){bl?bl.arrayBuffer().then(function(a){res(new Uint8Array(a))}):res(null)},"image/jpeg",0.92)})}
+function pdfBlob(jp,w,h){
+  var enc=new TextEncoder(),parts=[],off=[],len=0,n=jp.length;
+  function add(u){parts.push(u);len+=u.length}
+  function str(t){add(enc.encode(t))}
+  function obj(k,body){off[k]=len;str(k+" 0 obj\n"+body+"\nendobj\n")}
+  str("%PDF-1.4\n");
+  obj(1,"<< /Type /Catalog /Pages 2 0 R >>");
+  var kids=[];for(var i=0;i<n;i++)kids.push((3+3*i)+" 0 R");
+  obj(2,"<< /Type /Pages /Kids ["+kids.join(" ")+"] /Count "+n+" >>");
+  var cs="q 595 0 0 842 0 0 cm /Im0 Do Q";
+  for(i=0;i<n;i++){
+    var p=3+3*i;
+    obj(p,"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 "+(p+2)+" 0 R >> >> /Contents "+(p+1)+" 0 R >>");
+    obj(p+1,"<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream");
+    off[p+2]=len;str((p+2)+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+w+" /Height "+h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jp[i].length+" >>\nstream\n");
+    add(jp[i]);str("\nendstream\nendobj\n");
+  }
+  var N=3+3*n,xr=len;str("xref\n0 "+N+"\n0000000000 65535 f \n");
+  for(var k=1;k<N;k++)str(("0000000000"+off[k]).slice(-10)+" 00000 n \n");
+  str("trailer\n<< /Size "+N+" /Root 1 0 R >>\nstartxref\n"+xr+"\n%%EOF");
+  return new Blob(parts,{type:"application/pdf"});
+}
+var msg=document.getElementById("msg");
+document.getElementById("pdf").addEventListener("click",function(){
+  msg.textContent="PDF তৈরি হচ্ছে…";
+  var fname="report-"+Y+"-"+("0"+(Mo+1)).slice(-2)+".pdf",pg=repPages();
+  Promise.all(pg.map(jpgOf)).then(function(jp){
+    if(jp.some(function(j){return !j})){msg.textContent="PDF তৈরি করা যায়নি";return}
+    var blob=pdfBlob(jp,1190,1684);
+    if(DL){DL.save({filename:fname,data:blob}).then(function(){msg.textContent="সেভ হয়েছে ✓"}).catch(function(e){msg.textContent=(e&&e.code=="declined")?"":"ডাউনলোড করা যায়নি"})}
+    else{var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);msg.textContent="ডাউনলোড শুরু হয়েছে ✓"}
+  });
+});
+render();
+</script>
+</body>
+</html>
